@@ -23,31 +23,30 @@ INSTRUCIONES_x86 = {'mov', 'xchg', 'stc', 'clc', 'cmc', 'std', 'cld', 'sti', 'cl
                     'salc', 'lodsb', 'lodsd', 'enter', 'push'}
 
 
-def extraer_opcodes(datos_binarios, pe_oh_aoep, pe_oh_ib):
+def extraer_opcodes(datos_pe):
     instrucciones_desconocidas = 0
+
     try:
-        datos_mem = mmap.mmap(datos_binarios.fileno(), 0, access=mmap.ACCESS_READ)
-        datos_pe = pefile.PE(data=datos_mem)
-    except OSError as e:
-        print(e)
-        datos_pe = None
-    except pefile.PEFormatError as e:
-        print("[-] PEFormatError: %s" % e.value)
-        datos_pe = None
+        eop = datos_pe.OPTIONAL_HEADER.AddressOfEntryPoint
+        seccion_code = datos_pe.get_section_by_rva(eop)
 
-    pe_dir_entrada = pe_oh_aoep + pe_oh_ib
-    codigo_pe = datos_pe.get_memory_mapped_image()[pe_dir_entrada:]
-    dissasembler = Cs(CS_ARCH_X86, CS_MODE_32)
+        dump_code = seccion_code.get_data()
+        dir_code = datos_pe.OPTIONAL_HEADER.ImageBase + seccion_code.VirtualAddress
 
-    instrucciones = []
+        dissasembler = Cs(CS_ARCH_X86, CS_MODE_32)
 
-    for instruccion in dissasembler.disasm(codigo_pe, pe_dir_entrada):
-        if instruccion.mnemonic in INSTRUCIONES_x86:
-            instrucciones.append(instruccion.mnemonic)
-        else:
-            instrucciones_desconocidas += 1
+        instrucciones = []
 
-    opngramlist = [tupla_a_str(tuple(instrucciones[i:i + 2])) for i in range(len(instrucciones) - 2)]
-    opngram = Counter(opngramlist)
+        for instruccion in dissasembler.disasm(dump_code, dir_code):
+            if instruccion.mnemonic in INSTRUCIONES_x86:
+                instrucciones.append(instruccion.mnemonic)
+            else:
+                instrucciones_desconocidas += 1
 
-    return dict(opngram), instrucciones_desconocidas
+        opngramlist = [tupla_a_str(tuple(instrucciones[i:i + 2])) for i in range(len(instrucciones) - 2)]
+        opngram = dict(Counter(opngramlist))
+    except:
+        #añadir algun tipo de log
+        opngram = dict()
+
+    return opngram, instrucciones_desconocidas

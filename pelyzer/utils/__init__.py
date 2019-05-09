@@ -2,7 +2,7 @@ import os
 import yara
 
 def valores_dict_to_float(dic):
-    return dict((clave, float(valor)) for clave, valor in dic.iteritems())
+    return dict((clave, float(valor)) for clave, valor in dic.items())
 
 def tupla_a_str(tupla):
     str = '-'.join(tupla)

@@ -15,7 +15,8 @@ def extraer_cadenas(archivo_pe):
     ips = []
     capacidades = []
 
-    datos_bin = archivo_pe.read()
+    pefile_bin = open(archivo_pe, "rb")
+    datos_bin = pefile_bin.read()
 
     cadenas_match = cargar_yara(CADENAS_YARA).match(data=datos_bin)
     # hay mas de una regla en el archivo yara

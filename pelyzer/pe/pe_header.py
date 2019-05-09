@@ -21,14 +21,14 @@ def get_dos_nt_header(datos_pe):
     tmp['e_cs'] = datos_pe.DOS_HEADER.e_cs if hasattr(datos_pe.DOS_HEADER, 'e_cs') else 0
     tmp['e_lfarlc'] = datos_pe.DOS_HEADER.e_lfarlc if hasattr(datos_pe.DOS_HEADER, 'e_lfarlc') else 0
     tmp['e_ovno'] = datos_pe.DOS_HEADER.e_ovno if hasattr(datos_pe.DOS_HEADER, 'e_ovno') else 0
-    tmp['e_res'] = int.from_bytes(datos_pe.DOS_HEADER.e_res, byteorder='little') if hasattr(datos_pe.DOS_HEADER, 'e_res') else 0
+    #tmp['e_res'] = int.from_bytes(datos_pe.DOS_HEADER.e_res, byteorder='little') if hasattr(datos_pe.DOS_HEADER, 'e_res') else 0
     tmp['e_oemid'] = datos_pe.DOS_HEADER.e_oemid if hasattr(datos_pe.DOS_HEADER, 'e_oemid') else 0
     tmp['e_oeminfo'] = datos_pe.DOS_HEADER.e_oeminfo if hasattr(datos_pe.DOS_HEADER, 'e_oeminfo') else 0
-    tmp['e_res2'] = int.from_bytes(datos_pe.DOS_HEADER.e_res2, byteorder='little') if hasattr(datos_pe.DOS_HEADER, 'e_res2') else 0
+    #tmp['e_res2'] = int.from_bytes(datos_pe.DOS_HEADER.e_res2, byteorder='little') if hasattr(datos_pe.DOS_HEADER, 'e_res2') else 0
     tmp['e_lfanew'] = datos_pe.DOS_HEADER.e_lfanew if hasattr(datos_pe.DOS_HEADER, 'e_lfanew') else 0
     tmp['nt_signature'] = datos_pe.NT_HEADERS.Signature if hasattr(datos_pe.NT_HEADERS, 'Signature') else 0
 
-    #convetir todos los valores a float
+    # convetir todos los valores a float
     tmp = valores_dict_to_float(tmp)
 
     return tmp
@@ -52,6 +52,7 @@ def get_file_header(datos_pe):
 
 def get_optional_header(datos_pe):
     tmp = dict()
+
     tmp['Machine'] = datos_pe.OPTIONAL_HEADER.Magic if hasattr(datos_pe.FILE_HEADER, 'Machine') else 0
     tmp['MajorLinkerVersion'] = datos_pe.OPTIONAL_HEADER.MajorLinkerVersion if hasattr(datos_pe.FILE_HEADER, 'MajorLinkerVersion') else 0
     tmp['MinorLinkerVersion'] = datos_pe.OPTIONAL_HEADER.MinorLinkerVersion if hasattr(datos_pe.FILE_HEADER, 'MinorLinkerVersion') else 0
@@ -95,21 +96,24 @@ def get_pe_sections(datos_pe):
     num_secciones_estandar = 0
     num_secciones_sospechosas = 0
 
-    for seccion in datos_pe.sections:
-        aux = {}
-        nombre_seccion = seccion.Name.split(b'\x00')[0]
-        if nombre_seccion in SECCIONES_ESTANDAR:
-            num_secciones_estandar += 1
-        else:
-            num_secciones_sospechosas += 1
+    try:
+        for seccion in datos_pe.sections:
+            aux = {}
+            nombre_seccion = seccion.Name.split(b'\x00')[0]
+            if nombre_seccion in SECCIONES_ESTANDAR:
+                num_secciones_estandar += 1
+            else:
+                num_secciones_sospechosas += 1
 
-        aux['name'] = nombre_seccion
-        aux['s_size'] = seccion.SizeOfRawData
-        aux['s_vsize'] = seccion.Misc_VirtualSize
-        aux['s_entropy'] = seccion.get_entropy()
-        aux['s_isExecutable'] = True if seccion.Characteristics & 0x00000020 > 0 or seccion.Characteristics & 0x20000000 > 0 else False
+            aux['name'] = nombre_seccion
+            aux['s_size'] = seccion.SizeOfRawData
+            aux['s_vsize'] = seccion.Misc_VirtualSize
+            aux['s_entropy'] = seccion.get_entropy()
+            aux['s_isExecutable'] = True if seccion.Characteristics & 0x00000020 > 0 or seccion.Characteristics & 0x20000000 > 0 else False
 
-        tmp['sections'].append(aux)
+            tmp['sections'].append(aux)
+    except:
+        pass
 
     tmp['n_std_sec'] = num_secciones_estandar
     tmp['n_susp_sec'] = num_secciones_sospechosas
@@ -143,17 +147,8 @@ def get_pe_exports(datos_pe):
     return tmp
 
 
-def extraer_cabecera(datos_binarios):
+def extraer_cabecera(datos_pe):
     datos_cabecera = dict()
-    try:
-        datos_pe = mmap.mmap(datos_binarios.fileno(), 0, access=mmap.ACCESS_READ)
-        datos_pe = pefile.PE(data=datos_pe)
-    except OSError as e:
-        print(e)
-        datos_pe = None
-    except pefile.PEFormatError as e:
-        print("[-] PEFormatError: %s" % e.value)
-        datos_pe = None
 
     datos_cabecera['dos_nt_header'] = get_dos_nt_header(datos_pe)
     datos_cabecera['file_header'] = get_file_header(datos_pe)

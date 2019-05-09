@@ -1,21 +1,19 @@
-#este modulo se iba a construir sobre la utilidad para analizar packers provista por los peutils de peid,
-#pero al dar problemas con ciertos archivos (malware mal codificados a propósito) se ha decidido emplear reglas yara
+import peutils
+import pefile
+import mmap
 
-import yara
-from pelyzer.utils import cargar_yara
+USER_DB = "pelyzer/recursos/UserDB.TXT"
 
-PEID_YARA = "pelyzer/recursos/yara/compiladas/peid.yar"
-
-def extraer_packer(archivo_pe):
+def extraer_packer(datos_pe):
     packers = []
 
-    datos_bin = archivo_pe.read()
+    with open(USER_DB, 'rt', encoding = "ISO-8859-1") as f:
+        archivo_firmas = f.read()
 
-    packer_match = cargar_yara(PEID_YARA).match(data=datos_bin)
-    # hay mas de una regla en el archivo yara
+    firmas = peutils.SignatureDatabase(data=archivo_firmas)
+    packer_match = firmas.match_all(datos_pe, ep_only = True)
     if packer_match:
         for match in packer_match:
-            for packer in match.strings:
-                packers.append(packer[2])
+            packers.append(match)
 
     return len(packers)

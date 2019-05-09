@@ -2,6 +2,7 @@ import os
 import ntpath
 from tqdm import tqdm
 import pymongo
+import pefile
 from functools import partial
 from multiprocessing import Pool, cpu_count
 from pelyzer.utils import compilar_yara
@@ -12,7 +13,7 @@ from .pe_packer import extraer_packer
 
 USE_DB = True
 MONGO_SERVER = "127.0.0.1"
-NUM_PROCS = cpu_count()
+NUM_PROCS = cpu_count()//2
 
 def get_samples(directorio):
     samples = []
@@ -33,23 +34,31 @@ def extraer_y_almacenar(tipo, muestra):
         #añadimos los datos de la muestra a la base de datos mongodb
         if USE_DB:
             coleccion.insert_one(datos_muestra)
+            #cerramos la conexion con mongo para evitar problemas
+            cliente.close()
         else:
             pass
         # borramos la variable datos_muestra para ahorrar espacio en memoria
         del datos_muestra
 
-def extraer_caracteristicas_pe(pefile):
+def extraer_caracteristicas_pe(archivo_pe):
     caracteristicas = dict()
-    pefile_bin = open(pefile, "rb")
-    caracteristicas['sha256'] = ntpath.basename(pefile)
-    caracteristicas['pe_header'] = extraer_cabecera(pefile_bin)
-    opcodes, unk_opcodes = extraer_opcodes(pefile_bin, caracteristicas['pe_header']['optional_header']['AddressOfEntryPoint'],
-                                                    caracteristicas['pe_header']['optional_header']['ImageBase']
-                                                 )
-    caracteristicas['opcodes'] = opcodes
-    caracteristicas['unk_opcodes'] = unk_opcodes
-    caracteristicas['cadenas'] = extraer_cadenas(pefile_bin)
-    caracteristicas['packers'] = extraer_packer(pefile_bin)
+
+    try:
+        datos_pe = pefile.PE(archivo_pe, fast_load=False)
+    except OSError as e:
+        print(e)
+    except pefile.PEFormatError as e:
+        pass
+        #print("[-] PEFormatError: %s" % e.value)
+    else:
+        caracteristicas['sha256'] = ntpath.basename(archivo_pe)
+        caracteristicas['pe_header'] = extraer_cabecera(datos_pe)
+        opcodes, unk_opcodes = extraer_opcodes(datos_pe)
+        caracteristicas['opcodes'] = opcodes
+        caracteristicas['unk_opcodes'] = unk_opcodes
+        caracteristicas['cadenas'] = extraer_cadenas(archivo_pe)
+        caracteristicas['packers'] = extraer_packer(datos_pe)
 
     return caracteristicas
 
