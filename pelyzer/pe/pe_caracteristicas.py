@@ -29,7 +29,7 @@ def extraer_y_almacenar(tipo, muestra):
         coleccion = db['samples_data']
 
     datos_muestra = extraer_caracteristicas_pe(muestra)
-    if datos_muestra is not None:
+    if bool(datos_muestra):
         datos_muestra['malware'] = tipo
         #añadimos los datos de la muestra a la base de datos mongodb
         if USE_DB:
