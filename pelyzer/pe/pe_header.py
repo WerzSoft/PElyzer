@@ -99,7 +99,7 @@ def get_pe_sections(datos_pe):
     try:
         for seccion in datos_pe.sections:
             aux = {}
-            nombre_seccion = seccion.Name.split(b'\x00')[0]
+            nombre_seccion = seccion.Name.split(b'\x00')[0].decode('utf-8')
             if nombre_seccion in SECCIONES_ESTANDAR:
                 num_secciones_estandar += 1
             else:
@@ -110,6 +110,8 @@ def get_pe_sections(datos_pe):
             aux['s_vsize'] = seccion.Misc_VirtualSize
             aux['s_entropy'] = seccion.get_entropy()
             aux['s_isExecutable'] = True if seccion.Characteristics & 0x00000020 > 0 or seccion.Characteristics & 0x20000000 > 0 else False
+            aux['s_isWritable'] = True if seccion.Characteristics & 0x80000000 > 0 else False
+            aux['s_isReadable'] = True if seccion.Characteristics & 0x40000000 > 0 else False
 
             tmp['sections'].append(aux)
     except:
