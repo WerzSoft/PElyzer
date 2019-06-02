@@ -1,6 +1,4 @@
 import peutils
-import pefile
-import mmap
 
 USER_DB = "pelyzer/recursos/UserDB.TXT"
 

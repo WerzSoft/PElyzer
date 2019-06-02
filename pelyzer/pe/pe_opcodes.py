@@ -1,10 +1,6 @@
-import pefile
-import mmap
 from collections import *
 from capstone import *
-import numpy
-from sklearn.feature_extraction import FeatureHasher
-from pelyzer.utils import tupla_a_str
+import pelyzer.utils as utils
 
 INSTRUCIONES_x86 = {'mov', 'xchg', 'stc', 'clc', 'cmc', 'std', 'cld', 'sti', 'cli', 'push', 'pushf', 'pusha',
                     'pop', 'popf', 'popa', 'ccombw', 'cwd', 'cwde', 'in', 'out', 'add', 'adc', 'sub', 'sbb',
@@ -43,7 +39,7 @@ def extraer_opcodes(datos_pe):
             else:
                 instrucciones_desconocidas += 1
 
-        opngramlist = [tupla_a_str(tuple(instrucciones[i:i + 2])) for i in range(len(instrucciones) - 2)]
+        opngramlist = [utils.tupla_a_str(tuple(instrucciones[i:i + 2])) for i in range(len(instrucciones) - 2)]
         opngram = dict(Counter(opngramlist))
     except:
         #añadir algun tipo de log

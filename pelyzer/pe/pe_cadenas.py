@@ -1,6 +1,4 @@
 ##reglas yara obtenidas de https://github.com/Yara-Rules
-
-import yara
 from pelyzer.utils import cargar_yara
 
 CADENAS_YARA = "pelyzer/recursos/yara/compiladas/cadenas_sospechosas.yar"

@@ -1,15 +1,11 @@
 import os
-import ntpath
 from tqdm import tqdm
 import pymongo
 import pefile
 from functools import partial
 from multiprocessing import Pool, cpu_count
-from pelyzer.utils import compilar_yara
-from .pe_header import extraer_cabecera
-from .pe_opcodes import extraer_opcodes
-from .pe_cadenas import extraer_cadenas
-from .pe_packer import extraer_packer
+import pelyzer.utils as utils
+import pelyzer.pe as pe
 
 USE_DB = True
 MONGO_SERVER = "127.0.0.1"
@@ -50,22 +46,23 @@ def extraer_caracteristicas_pe(archivo_pe):
         print(e)
     except pefile.PEFormatError as e:
         pass
+        #logger
         #print("[-] PEFormatError: %s" % e.value)
     else:
-        caracteristicas['sha256'] = ntpath.basename(archivo_pe)
-        caracteristicas['pe_header'] = extraer_cabecera(datos_pe)
-        opcodes, unk_opcodes = extraer_opcodes(datos_pe)
+        caracteristicas['sha256'] = utils.hash_sha256(archivo_pe)
+        caracteristicas['pe_header'] = pe.extraer_cabecera(datos_pe)
+        opcodes, unk_opcodes = pe.extraer_opcodes(datos_pe)
         caracteristicas['opcodes'] = opcodes
         caracteristicas['unk_opcodes'] = unk_opcodes
-        caracteristicas['cadenas'] = extraer_cadenas(archivo_pe)
-        caracteristicas['packers'] = extraer_packer(datos_pe)
+        caracteristicas['cadenas'] = pe.extraer_cadenas(archivo_pe)
+        caracteristicas['packers'] = pe.extraer_packer(datos_pe)
 
     return caracteristicas
 
 
 def extraer_caracteristicas_dirs(malwareDir, goodwareDir):
     print("[+]Compilando reglas yara...")
-    compilar_yara()
+    utils.compilar_yara()
     print("[+]Listando Malwares....")
     muestras_malware = get_samples(malwareDir)
     print("[+]Listando archivos benignos...")
@@ -79,15 +76,15 @@ def extraer_caracteristicas_dirs(malwareDir, goodwareDir):
     sub_malware = partial(extraer_y_almacenar, 1)
     sub_goodware = partial(extraer_y_almacenar, 0)
 
-    print("Usando {} Cores".format(NUM_PROCS))
+    print("[*]Usando {} Cores".format(NUM_PROCS))
 
 
     with Pool(processes=NUM_PROCS) as p:
-        with tqdm(total=total_malware, desc='[+]Analizando malware', position=0) as pbar:
+        with tqdm(total=total_malware, desc='[*]Analizando malware', position=0) as pbar:
             for i, _ in tqdm(enumerate(p.imap_unordered(sub_malware, muestras_malware))):
                 pbar.update()
 
     with Pool(processes=NUM_PROCS) as p:
-        with tqdm(total=total_benignos, desc='[+]Analizando goodware', position=1) as pbar:
+        with tqdm(total=total_benignos, desc='[*]Analizando goodware', position=1) as pbar:
             for i, _ in tqdm(enumerate(p.imap_unordered(sub_goodware, muestras_goodware))):
                 pbar.update()

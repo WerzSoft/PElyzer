@@ -1,6 +1,4 @@
-import pefile
-import mmap
-from pelyzer.utils import valores_dict_to_float
+import pelyzer.utils as utils
 
 SECCIONES_ESTANDAR = set([b'.text', b'.data', b'.rdata', b'.reloc', b'.idata', b'.edata', b'.rsrc', b'.bss', b'.crt', b'.tls'])
 
@@ -29,7 +27,7 @@ def get_dos_nt_header(datos_pe):
     tmp['nt_signature'] = datos_pe.NT_HEADERS.Signature if hasattr(datos_pe.NT_HEADERS, 'Signature') else 0
 
     # convetir todos los valores a float
-    tmp = valores_dict_to_float(tmp)
+    tmp = utils.valores_dict_to_float(tmp)
 
     return tmp
 
@@ -45,7 +43,7 @@ def get_file_header(datos_pe):
     tmp['Characteristics'] = datos_pe.FILE_HEADER.Characteristics if hasattr(datos_pe.FILE_HEADER, 'Characteristics') else 0
 
     # convetir todos los valores a float
-    tmp = valores_dict_to_float(tmp)
+    tmp = utils.valores_dict_to_float(tmp)
 
     return tmp
 
@@ -85,7 +83,7 @@ def get_optional_header(datos_pe):
     tmp['NumberOfRvaAndSizes'] = datos_pe.OPTIONAL_HEADER.NumberOfRvaAndSizes if hasattr(datos_pe.OPTIONAL_HEADER, 'NumberOfRvaAndSizes') else 0
 
     # convetir todos los valores a float
-    tmp = valores_dict_to_float(tmp)
+    tmp = utils.valores_dict_to_float(tmp)
 
     return tmp
 

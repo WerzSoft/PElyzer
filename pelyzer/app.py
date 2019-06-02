@@ -1,8 +1,9 @@
 from art import *
 from colorama import init,Fore, Back, Style
 import click
-from .pe import analizar_archivo
-from .pe import entrenar_algoritmo
+import pelyzer.pe as pe
+import pelyzer.ml as ml
+import time
 
 nombre_app = "PElyzer"
 descripcion_app = "{} permite analizar archivos PE y determinar si son benignos o maliciosos\n" \
@@ -17,17 +18,30 @@ def cli():
     pass
 
 @cli.command()
-@click.argument('PEFile', metavar="PEFile", required=True)
-def analizar(file):
-    """Analiza un archivo PE"""
-    print(file)
+@click.argument('ruta', metavar="archivo/directorio", required=True, type=click.Path(exists=True))
+def analizar(ruta):
+    """Analizar archivos o carpetas"""
+    t0 = time.time()
+    if os.path.isdir(ruta):
+        ml.analizar_directorio(ruta)
+    else:
+        ml.analizar_archivo(ruta)
+    t1 = time.time()
+    print("\n\n[+]Proceso finalizado en {} segundos".format(t1 - t0))
+
 
 @cli.command()
 @click.option('--malwareDir', required=True, metavar="<dir>", help="Directorio con muestras de malware")
 @click.option('--goodwareDir', required=True, metavar="<dir>", help="Directorio con muestras benignas")
-def entrenar(malwaredir: str, goodwaredir: str):
-    """Entrena el algoritmo de ML"""
-    entrenar_algoritmo(malwaredir, goodwaredir)
+def procesar(malwaredir: str, goodwaredir: str):
+    """Procesa los samples disponibles"""
+    pe.procesar_samples(malwaredir, goodwaredir)
+
+
+@cli.command()
+def entrenar():
+    """Entrena el algoritmo de ML (XGBoost)"""
+    ml.entrenar_XGBoost()
 
 
 def run():
