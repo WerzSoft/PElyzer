@@ -5,11 +5,14 @@ from sklearn.externals import joblib
 
 import pelyzer.pe as pe
 import pelyzer.ml as ml
+import pelyzer.utils as utils
 
 import warnings
 warnings.filterwarnings("ignore")
 
 def analizar_pe(archivo):
+    print("[+]Compilando reglas yara...")
+    utils.compilar_yara()
     print("[+]Analizando {}".format(ntpath.basename(archivo)))
 
     #extraer caracteristicas
@@ -21,7 +24,7 @@ def analizar_pe(archivo):
     else:
         return None
 
-    clf = joblib.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'modelos/modelo_prediccion3.pkl'))
+    clf = joblib.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'modelos/modelo_prediccion6.pkl'))
     resultado = clf.predict(caracteristicas)[0]
 
     return resultado

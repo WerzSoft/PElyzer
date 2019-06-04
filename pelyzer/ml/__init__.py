@@ -99,11 +99,11 @@ def procesar_opcodes(opcodes):
     return tmp
 
 
-def procesar_cadenas(cadenas):
+def procesar_yara(yara):
     tmp = dict()
 
-    for clave, valor in cadenas.items():
-        tmp['cadenas_%s' % clave] = valor
+    for clave, valor in yara.items():
+        tmp['yara_%s' % clave] = valor
 
     return tmp
 
@@ -112,21 +112,30 @@ def vector_caracteristicas(datos_raw, is_training=False):
     datos_pe = dict()
 
     sha = datos_raw['sha256']
+    is_exe = datos_raw['is_exe']
+    is_dll = datos_raw['is_dll']
+    is_driver = datos_raw['is_driver']
     pe_header = datos_raw['pe_header']
     opcodes = datos_raw['opcodes']
     unk_opcodes = datos_raw['unk_opcodes']
-    cadenas = datos_raw['cadenas']
-    packers = datos_raw['packers']
+    yara = datos_raw['yara']
+    checksum_invalido = datos_raw['checksum_invalido']
+    firmado = datos_raw['firmado']
 
     datos_pe['sha256'] = sha
-    if is_training:
-        malware = datos_raw['malware']
-        datos_pe['malware'] = malware
+    datos_pe['is_exe'] = 1 if is_exe else 0
+    datos_pe['is_dll'] = 1 if is_dll else 0
+    datos_pe['is_driver'] = 1 if is_driver else 0
     datos_pe = merge_dicts(datos_pe, procesar_pe_header(pe_header))
     datos_pe = merge_dicts(datos_pe, procesar_opcodes(opcodes))
     datos_pe['unk_opcodes'] = unk_opcodes
-    datos_pe = merge_dicts(datos_pe, procesar_cadenas(cadenas))
-    datos_pe['packers'] = packers
+    datos_pe = merge_dicts(datos_pe, procesar_yara(yara))
+    datos_pe['checksum_invalido'] = checksum_invalido
+    datos_pe['firmado'] = firmado
+    if is_training:
+        malware = datos_raw['malware']
+        datos_pe['malware'] = malware
+
 
     return datos_pe
 

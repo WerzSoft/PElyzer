@@ -50,12 +50,16 @@ def extraer_caracteristicas_pe(archivo_pe):
         #print("[-] PEFormatError: %s" % e.value)
     else:
         caracteristicas['sha256'] = utils.hash_sha256(archivo_pe)
+        caracteristicas["is_dll"] = datos_pe.is_dll()
+        caracteristicas["is_exe"] = datos_pe.is_exe()
+        caracteristicas["is_driver"] = datos_pe.is_driver()
         caracteristicas['pe_header'] = pe.extraer_cabecera(datos_pe)
         opcodes, unk_opcodes = pe.extraer_opcodes(datos_pe)
         caracteristicas['opcodes'] = opcodes
         caracteristicas['unk_opcodes'] = unk_opcodes
-        caracteristicas['cadenas'] = pe.extraer_cadenas(archivo_pe)
-        caracteristicas['packers'] = pe.extraer_packer(datos_pe)
+        caracteristicas['yara'] = pe.extraer_yara(archivo_pe)
+        caracteristicas['checksum_invalido'] = pe.check_checksum(datos_pe)
+        caracteristicas['firmado'] = pe.check_firma(datos_pe)
 
     return caracteristicas
 
@@ -77,7 +81,6 @@ def extraer_caracteristicas_dirs(malwareDir, goodwareDir):
     sub_goodware = partial(extraer_y_almacenar, 0)
 
     print("[*]Usando {} Cores".format(NUM_PROCS))
-
 
     with Pool(processes=NUM_PROCS) as p:
         with tqdm(total=total_malware, desc='[*]Analizando malware', position=0) as pbar:
