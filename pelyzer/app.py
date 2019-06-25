@@ -1,22 +1,30 @@
+#Este módulo maneja el punto de entrada de la aplicación,
+#mostrando la interfaz de usuario via CLI y llamando a las
+#distintas funciones necesarias para su funcionamiento
+
+
 from art import *
 from colorama import init,Fore, Back, Style
 import click
 import pelyzer.pe as pe
 import pelyzer.ml as ml
+from pelyzer import inicializar
 import time
+import pelyzer.utils as utils
+import pelyzer.utils.config as config
 
-nombre_app = "PElyzer"
-descripcion_app = "{} permite analizar archivos PE y determinar si son benignos o maliciosos\n" \
-                  "empleando algoritmos de machine learning".format(nombre_app)
-epilog_app = "Para más información visitar https://github.com/sknfvjkdnfbkjdfn"
 
+#mostrar ayuda y versión de la aplicación
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version='0.0.1')
+@click.version_option(version=config.SW_VERSION)
 def cli():
     pass
 
+
+#analizar ficheros o directorios. Si se pasa como parámetro un directorio, busca recursivamente
+#todos los ficheros en el mismo. Se recomienda
+#realizar este proceso en una máquina con los recursos hardware apropiados.
 @cli.command()
 @click.argument('ruta', metavar="archivo/directorio", required=True, type=click.Path(exists=True))
 def analizar(ruta):
@@ -30,27 +38,47 @@ def analizar(ruta):
     print("\n\n[+]Proceso finalizado en {} segundos".format(t1 - t0))
 
 
+#extrae las caracteristicas de las muestras de malware y goodware existentes, almacenándolas en una base
+#de datos mongodb
 @cli.command()
 @click.option('--malwareDir', required=True, metavar="<dir>", help="Directorio con muestras de malware")
 @click.option('--goodwareDir', required=True, metavar="<dir>", help="Directorio con muestras benignas")
 def procesar(malwaredir: str, goodwaredir: str):
     """Procesa los samples disponibles"""
-    pe.procesar_samples(malwaredir, goodwaredir)
+    if utils.comprobar_db():
+        pe.procesar_samples(malwaredir, goodwaredir)
+    else:
+        utils.mostrar_mensaje("rojo", "Error: Base de datos no disponible.")
 
 
+#entrena el modelo de machine learning por medio del algoritmo XGBoost, cogiendo los datos de la base de datos
+#previamene creada y almacenando el modelo en formato binario para su posterior utilización. Se recomienda
+#realizar este proceso en una máquina con los recursos hardware apropiados.
 @cli.command()
 def entrenar():
     """Entrena el algoritmo de ML (XGBoost)"""
-    ml.entrenar_XGBoost()
+    #si no está disponible la base de datos no se inicia el proceso
+    if utils.comprobar_db():
+        if not utils.db_vacia():
+            ml.entrenar_XGBoost()
+        else:
+            utils.mostrar_mensaje("rojo", "Error: Debe procesar primero las muestras")
+    else:
+        utils.mostrar_mensaje("rojo", "Error: Base de datos no disponible.")
 
 
+#muestra el cli al usuario
 def run():
     init()
-    logo = text2art("PELyzer", font="alligator2")
+    logo = text2art(config.NOMBRE_APP, font="alligator2")
     print(Fore.GREEN+logo)
     print(Fore.LIGHTBLUE_EX+"Machine Learning Aplicado a Ciberseguridad: Detector de Malware\n")
     print(Fore.BLUE + "Trabajo Fin de Grado")
     print(Fore.BLUE + "David Rodríguez Regueira\n")
+    print("##################################################################################")
+    print(Fore.YELLOW)
+    inicializar()
+    print(Fore.BLUE)
     print("##################################################################################\n")
     print(Style.RESET_ALL)
 

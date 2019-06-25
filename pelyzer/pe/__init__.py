@@ -1,4 +1,6 @@
-import os
+#Este modulo carga las funciones y características del paquete que son usadas en otras partes de la aplicación. Además
+#es el encargado de iniciar el procesamiento de los samples para la extracción de características.
+
 import time
 
 from pelyzer.pe.pe_caracteristicas import extraer_caracteristicas_dirs

@@ -1,18 +1,20 @@
+#modulo encargado de extraer características de las cabeceras de las muestras
+
+
 import pelyzer.utils as utils
-import pefile
 
 # http://www.hexacorn.com/blog/2016/12/15/pe-section-names-re-visited/
 # secciones más utilizadas
-SECCIONES_ESTANDAR = [b'.00cfg', b'.arch', b'.autoload_text', b'.bindat', b'.bootdat', b'.bss', b'.BSS', b'.buildid',
-                      '.CLR_UEF', b'.code', b'.cormeta', b'.complua', b'.CRT', b'.cygwin_dll_common', b'.data', b'.DATA',
-                      '.data1', b'.data2', b'.data3', b'.debug', b'.debug$F', b'.debug$P', b'.debug$S', b'.debug$T',
-                      '.drectve', b'.didat', b'.didata', b'.edata', b'.eh_fram', b'.export', b'.fasm', b'.flat', b'.gfids',
-                      '.giats', b'.gljmp', b'.glue_7t', b'.glue_7', b'.idata', b'.idlsym', b'.impdata', b'.itext', b'.ndata',
-                      '.orpc', b'.pdata', b'.rdata', b'.reloc', b'.rodata', b'.rsrc', b'.sbss', b'.script', b'.shared',
-                      '.sdata', b'.srdata', b'.stab', b'.stabstr', b'.sxdata', b'.text', b'.text0', b'.text1', b'.text2',
-                      '.text3', b'.textbss', b'.tls', b'.tls$', b'.udata', b'.vsdata', b'.xdata', b'.wixburn', b'BSS', b'CODE',
-                      'DATA', b'DGROUP', b'edata', b'idata', b'INIT', b'minATL', b'PAGE', b'rdata', b'sdata', b'shared',
-                      'Shared', b'testdata', b'text']
+SECCIONES_ESTANDAR = ['.00cfg', '.arch', '.autoload_text', '.bindat', '.bootdat', '.bss', '.BSS', '.buildid',
+                      '.CLR_UEF', '.code', '.cormeta', '.complua', '.CRT', '.cygwin_dll_common', '.data', '.DATA',
+                      '.data1', '.data2', '.data3', '.debug', '.debug$F', '.debug$P', '.debug$S', '.debug$T',
+                      '.drectve', '.didat', '.didata', '.edata', '.eh_fram', '.export', '.fasm', '.flat', '.gfids',
+                      '.giats', '.gljmp', '.glue_7t', '.glue_7', '.idata', '.idlsym', '.impdata', '.itext', '.ndata',
+                      '.orpc', '.pdata', '.rdata', '.reloc', '.rodata', '.rsrc', '.sbss', '.script', '.shared',
+                      '.sdata', '.srdata', '.stab', '.stabstr', '.sxdata', '.text', '.text0', '.text1', '.text2',
+                      '.text3', '.textbss', '.tls', '.tls$', '.udata', '.vsdata', '.xdata', '.wixburn', 'BSS', 'CODE',
+                      'DATA', 'DGROUP', 'edata', 'idata', 'INIT', 'minATL', 'PAGE', 'rdata', 'sdata', 'shared',
+                      'Shared', 'testdata', 'text']
 
 
 def get_dos_nt_header(datos_pe):

@@ -1,3 +1,7 @@
+#modulo encargado de realizar el análisis sobre archivos y procesar los resultados en base al modelo de predicción
+#previamente entrenado
+
+
 import ntpath
 import os
 import pandas as pd
@@ -5,14 +9,9 @@ from sklearn.externals import joblib
 
 import pelyzer.pe as pe
 import pelyzer.ml as ml
-import pelyzer.utils as utils
 
-import warnings
-warnings.filterwarnings("ignore")
 
 def analizar_pe(archivo):
-    print("[+]Compilando reglas yara...")
-    utils.compilar_yara()
     print("[+]Analizando {}".format(ntpath.basename(archivo)))
 
     #extraer caracteristicas
@@ -22,9 +21,10 @@ def analizar_pe(archivo):
         caracteristicas = pd.DataFrame.from_dict([caracteristicas], orient='columns')
         caracteristicas = caracteristicas.drop('sha256', axis=1).values
     else:
-        return None
+        return None, None
 
-    clf = joblib.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'modelos/modelo_prediccion6.pkl'))
+    clf = joblib.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'modelos/modelo_xgboost.pkl'))
     resultado = clf.predict(caracteristicas)[0]
+    proba = clf.predict_proba(caracteristicas)[:,1][0]
 
-    return resultado
+    return resultado, proba

@@ -1,4 +1,7 @@
-##reglas yara obtenidas de https://github.com/Yara-Rules
+#modulo encargado de extraer características a través de la búsqueda de patrones mediante reglas YARA pre-compiladas
+
+
+#reglas yara obtenidas de https://github.com/Yara-Rules
 from pelyzer.utils import cargar_yara
 
 CADENAS_YARA = "pelyzer/recursos/yara/compiladas/cadenas_sospechosas.yar"
@@ -7,6 +10,7 @@ IPS_YARA = "pelyzer/recursos/yara/compiladas/ips.yar"
 CAPACIDADES_YARA = "pelyzer/recursos/yara/compiladas/capacidades.yar"
 ANTIDEBUG_ANTIVM = "pelyzer/recursos/yara/compiladas/antidebug_antivm.yar"
 PEID = "pelyzer/recursos/yara/compiladas/peid.yar"
+
 
 def extraer_yara(archivo_pe):
     tmp = {}
@@ -64,9 +68,9 @@ def extraer_yara(archivo_pe):
         packers_len = len(packers)
     except Exception as e:
         if "internal error: 30" in str(e):
+            packers_len = 0
+        else:
             raise
-    else:
-        packers_len = 9999
 
 
     tmp['cadenas_sospechosas'] = len(sospechosas)

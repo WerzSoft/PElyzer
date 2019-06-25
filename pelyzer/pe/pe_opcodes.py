@@ -1,3 +1,6 @@
+#modulo encargado de extraer características del código máquina de las muestras
+
+
 from collections import *
 from capstone import *
 import pelyzer.utils as utils
