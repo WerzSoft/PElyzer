@@ -70,7 +70,7 @@ def CM(algo, cm, clases, fig=None, title='Matriz de Confusión', cmap=plt.get_cm
     fig.figure.savefig('imagenes/{}_cm.png'.format(algo))
     plt.clf()
 
-dataset = pd.read_csv("dataset.csv")
+dataset = pd.read_csv("pelyzer/recursos/dataset.csv")
 #dataset.set_index('sha256', inplace=True)
 X = dataset.drop(['sha256', 'malware'], axis=1).values
 y = dataset['malware'].values

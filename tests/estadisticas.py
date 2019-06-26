@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 
-datos = pd.read_csv("dataset.csv")
+datos = pd.read_csv("pelyzer/recursos/dataset.csv")
 
 #visualizacion valores nulos
 sns.heatmap(datos.isnull(), cbar=True, cmap="OrRd_r")

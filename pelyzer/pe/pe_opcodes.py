@@ -3,7 +3,7 @@
 
 from collections import *
 from capstone import *
-import pelyzer.utils as utils
+import utils as utils
 
 INSTRUCIONES_x86 = {'mov', 'xchg', 'stc', 'clc', 'cmc', 'std', 'cld', 'sti', 'cli', 'push', 'pushf', 'pusha',
                     'pop', 'popf', 'popa', 'ccombw', 'cwd', 'cwde', 'in', 'out', 'add', 'adc', 'sub', 'sbb',

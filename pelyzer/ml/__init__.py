@@ -6,10 +6,10 @@
 import os
 from sklearn.feature_extraction import FeatureHasher
 
-from pelyzer.utils import merge_dicts
-from pelyzer.ml.analizar import analizar_pe
-from pelyzer.ml.entrenar import entrenar_XGBoost
-import pelyzer.utils as utils
+from utils import merge_dicts
+from ml.analizar import analizar_pe
+from ml.entrenar import entrenar_XGBoost
+import utils as utils
 
 
 def procesar_sections(sections):
@@ -135,8 +135,8 @@ def vector_caracteristicas(datos_raw, is_training=False):
     datos_pe = merge_dicts(datos_pe, procesar_opcodes(opcodes))
     datos_pe['unk_opcodes'] = unk_opcodes
     datos_pe = merge_dicts(datos_pe, procesar_yara(yara))
-    datos_pe['checksum_invalido'] = checksum_invalido
-    datos_pe['firmado'] = firmado if firmado else 0
+    datos_pe['checksum_invalido'] = 1 if checksum_invalido else 0
+    datos_pe['firmado'] = 1 if firmado else 0
     if is_training:
         malware = datos_raw['malware']
         datos_pe['malware'] = malware

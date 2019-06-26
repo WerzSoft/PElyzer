@@ -58,3 +58,5 @@ docs/_build/
 target/
 
 \.idea/
+
+pelyzer/ml/modelos/modelo_xgboost\.pkl

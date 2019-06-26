@@ -7,8 +7,8 @@ import os
 import pandas as pd
 from sklearn.externals import joblib
 
-import pelyzer.pe as pe
-import pelyzer.ml as ml
+import pe as pe
+import ml as ml
 
 
 def analizar_pe(archivo):
@@ -23,8 +23,12 @@ def analizar_pe(archivo):
     else:
         return None, None
 
-    clf = joblib.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'modelos/modelo_xgboost.pkl'))
+    clf = joblib.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'modelos\\modelo_xgboost.pkl'))
     resultado = clf.predict(caracteristicas)[0]
-    proba = clf.predict_proba(caracteristicas)[:,1][0]
+
+    if resultado == 1:
+        proba = clf.predict_proba(caracteristicas)[:,1][0]
+    else:
+        proba = clf.predict_proba(caracteristicas)[:, 0][0]
 
     return resultado, proba

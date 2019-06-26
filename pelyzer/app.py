@@ -6,12 +6,11 @@
 from art import *
 from colorama import init,Fore, Back, Style
 import click
-import pelyzer.pe as pe
-import pelyzer.ml as ml
-from pelyzer import inicializar
+import pe
+import ml
 import time
-import pelyzer.utils as utils
-import pelyzer.utils.config as config
+import utils
+import utils.config as config
 
 
 #mostrar ayuda y versión de la aplicación
@@ -77,7 +76,7 @@ def run():
     print(Fore.BLUE + "David Rodríguez Regueira\n")
     print("##################################################################################")
     print(Fore.YELLOW)
-    inicializar()
+    utils.inicializar()
     print(Fore.BLUE)
     print("##################################################################################\n")
     print(Style.RESET_ALL)

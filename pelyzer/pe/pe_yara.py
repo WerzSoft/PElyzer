@@ -2,7 +2,7 @@
 
 
 #reglas yara obtenidas de https://github.com/Yara-Rules
-from pelyzer.utils import cargar_yara
+from utils import cargar_yara
 
 CADENAS_YARA = "pelyzer/recursos/yara/compiladas/cadenas_sospechosas.yar"
 URLS_YARA = "pelyzer/recursos/yara/compiladas/urls.yar"
@@ -20,57 +20,58 @@ def extraer_yara(archivo_pe):
     capacidades = []
     antidebug_antivm = []
     packers = []
-
-    pefile_bin = open(archivo_pe, "rb")
-    datos_bin = pefile_bin.read()
-
-    cadenas_match = cargar_yara(CADENAS_YARA).match(data=datos_bin)
-    # hay mas de una regla en el archivo yara
-    if cadenas_match:
-        for match in cadenas_match:
-            for cadena in match.strings:
-                sospechosas.append(cadena[2])
-
-    urls_match = cargar_yara(URLS_YARA).match(data=datos_bin)
-    if urls_match:
-        for url in urls_match[0].strings:
-            urls.append(url[2])
-
-    ips_match = cargar_yara(IPS_YARA).match(data=datos_bin)
-    if ips_match:
-        for ip in ips_match[0].strings:
-            ips.append(ip[2])
-
-    capacidades_match = cargar_yara(CAPACIDADES_YARA).match(data=datos_bin)
-    #hay mas de una regla en el archivo yara
-    if capacidades_match:
-        for match in capacidades_match:
-            for capacidad in match.strings:
-                capacidades.append(capacidad[2])
-
-    antidebug_antivm_match = cargar_yara(ANTIDEBUG_ANTIVM).match(data=datos_bin)
-    # hay mas de una regla en el archivo yara
-    if antidebug_antivm_match:
-        for match in antidebug_antivm_match:
-            for tecnica in match.strings:
-                antidebug_antivm.append(tecnica[2])
-
-    # se produce el error porque hay demasiados matches en ciertos archivos al ser un conjunto de reglas muy grande
-    #se controla el error y se manda un valor elevado si este se produce
     packers_len = 0
+
+    #pefile_bin = open(archivo_pe, "rb")
+    #datos_bin = pefile_bin.read()
+
+    for cadenas_match in cargar_yara(CADENAS_YARA).match(archivo_pe):
+        if type(cadenas_match) is list:
+            sospechosas.append(cadenas_match[0])
+        else:
+            sospechosas.append(cadenas_match)
+
+    for urls_match in cargar_yara(URLS_YARA).match(archivo_pe):
+        if type(urls_match) is list:
+            urls.append(urls_match[0])
+        else:
+            urls.append(urls_match)
+
+    for ips_match in cargar_yara(IPS_YARA).match(archivo_pe):
+        if type(ips_match) is list:
+            ips.append(ips_match[0])
+        else:
+            ips.append(ips_match)
+
+    for capacidades_match in cargar_yara(CAPACIDADES_YARA).match(archivo_pe):
+        if type(capacidades_match) is list:
+            capacidades.append(capacidades_match[0])
+        else:
+            capacidades.append(capacidades_match)
+
+    for antidebug_antivm_match in cargar_yara(ANTIDEBUG_ANTIVM).match(archivo_pe):
+        if type(antidebug_antivm_match) is list:
+            antidebug_antivm.append(antidebug_antivm_match[0])
+        else:
+            antidebug_antivm.append(antidebug_antivm_match)
+
+    #estas reglas producen muchos matches en algunos archivos, por lo que se ha de crear un manejador de errores
     try:
-        packers_match = cargar_yara(PEID).match(data=datos_bin)
-        # hay mas de una regla en el archivo yara
-        if packers_match:
-            for match in packers_match:
-                for packer in match.strings:
-                    packers.append(packer[2])
+        for packers_match in cargar_yara(PEID).match(archivo_pe):
+            if type(packers_match) is list:
+                packers.append(packers_match[0])
+            else:
+                packers.append(packers_match)
         packers_len = len(packers)
     except Exception as e:
-        if "internal error: 30" in str(e):
-            packers_len = 0
-        else:
+        #el error en cuestión produce el mensaje internal error: 30
+        if str(e) != "internal error: 30":
             raise
+        else:
+            #introducir log en versiones futuras
+            #si se produce un error se introduce un numero de packers elevado para subsanar el error
+            packers_len = 99
+
 
 
     tmp['cadenas_sospechosas'] = len(sospechosas)

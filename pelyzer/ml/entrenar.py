@@ -12,9 +12,9 @@ from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib
 import xgboost as xgb
 
-import pelyzer.ml as ml
-import pelyzer.utils as utils
-import pelyzer.utils.config as config
+import ml as ml
+import utils as utils
+import utils.config as config
 
 def entrenar_XGBoost():
     print("[+]Leyendo base de datos")
@@ -35,7 +35,12 @@ def entrenar_XGBoost():
     dataset = pd.DataFrame.from_dict(matriz_caracteristicas, orient='columns')
     dataset.set_index('sha256', inplace=True)
 
-    X = dataset.drop(['malware'], axis=1).values
+    #se guarda el dataset en formato csv para futuras pruebas y generación de estadísticas
+    dataset.to_csv("pelyzer/recursos/dataset.csv")
+    del dataset
+
+    dataset = pd.read_csv("pelyzer/recursos/dataset.csv")
+    X = dataset.drop(['sha256', 'malware'], axis=1).values
     y = dataset['malware'].values
 
     print("[+]Generando datasets de entrenamiento y prueba (80%%//20%%)")

@@ -3,12 +3,12 @@
 
 import time
 
-from pelyzer.pe.pe_caracteristicas import extraer_caracteristicas_dirs
-from pelyzer.pe.pe_caracteristicas import extraer_caracteristicas_pe
-from pelyzer.pe.pe_header import extraer_cabecera
-from pelyzer.pe.pe_opcodes import extraer_opcodes
-from pelyzer.pe.pe_yara import extraer_yara
-from pelyzer.pe.pe_extras import check_checksum, check_firma
+from pe.pe_caracteristicas import extraer_caracteristicas_dirs
+from pe.pe_caracteristicas import extraer_caracteristicas_pe
+from pe.pe_header import extraer_cabecera
+from pe.pe_opcodes import extraer_opcodes
+from pe.pe_yara import extraer_yara
+from pe.pe_extras import check_checksum, check_firma
 
 
 def procesar_samples(malwareDir, goodwareDir):

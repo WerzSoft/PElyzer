@@ -7,9 +7,9 @@ import pymongo
 import pefile
 from functools import partial
 from multiprocessing import Pool
-import pelyzer.utils as utils
-import pelyzer.utils.config as config
-import pelyzer.pe as pe
+import utils
+import utils.config as config
+import pe as pe
 
 
 #lista todos los samples existentes en la ruta pasada por parámetro
@@ -24,26 +24,21 @@ def get_samples(directorio):
 #recupera las características extraídas y, si esta habilitado el almacenamiento, las guarda en la base de datos
 #mongo db definida en la configuración
 def extraer_y_almacenar(tipo, muestra):
-    if config.USE_DB:
-        cliente = utils.conectar_db()
-        db = cliente[config.MONGO_DB]
-        coleccion = db[config.MONGO_COLLECTION]
-
     datos_muestra = extraer_caracteristicas_pe(muestra)
     if bool(datos_muestra):
         datos_muestra['malware'] = tipo
         #añadimos los datos de la muestra a la base de datos mongodb
         if config.USE_DB:
+            cliente = utils.conectar_db()
+            db = cliente[config.MONGO_DB]
+            coleccion = db[config.MONGO_COLLECTION]
             coleccion.insert_one(datos_muestra)
+            #cerramos la conexión para evitar errores al crear nuevos procesos
+            cliente.close()
         else:
             pass
         # borramos la variable datos_muestra para ahorrar espacio en memoria
         del datos_muestra
-
-    #si se ha usado base de datos, cerramos la conexión para evitar errores al crear nuevos procesos
-    #es necesario ya que la librería pymongo tiene un limite a la hora de crear procesos
-    if config.USE_DB:
-        cliente.close()
 
 #llama a los distintios modulos encargados de extraer las características de un sample. Así mismo, comprueba que se
 #trate de un archivo con formato PE
@@ -94,16 +89,15 @@ def extraer_caracteristicas_dirs(malwareDir, goodwareDir):
 
     print("[*]Usando {} Cores".format(utils.num_procs()))
 
-    mal_pool = Pool(utils.num_procs())
+    pool = Pool(utils.num_procs())
     with tqdm(total=total_malware, desc='[*]Analizando malware', position=0) as pbar:
-        for i, _ in tqdm(enumerate(mal_pool.imap_unordered(sub_malware, muestras_malware))):
+        for i, _ in tqdm(enumerate(pool.imap_unordered(sub_malware, muestras_malware))):
             pbar.update()
         mal_pool.close()
         mal_pool.join()
 
-    good_pool = Pool(utils.num_procs())
     with tqdm(total=total_benignos, desc='[*]Analizando goodware', position=1) as pbar:
-        for i, _ in tqdm(enumerate(good_pool.imap_unordered(sub_goodware, muestras_goodware))):
+        for i, _ in tqdm(enumerate(pool.imap_unordered(sub_goodware, muestras_goodware))):
             pbar.update()
         good_pool.close()
         good_pool.join()

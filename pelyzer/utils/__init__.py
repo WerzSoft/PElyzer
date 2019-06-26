@@ -6,8 +6,18 @@ import hashlib
 from colorama import init,Fore, Back, Style
 from multiprocessing import cpu_count
 import pymongo
-import pelyzer.utils.config as config
+import utils.config as config
 
+def inicializar():
+    print("Versión Software: {}".format(config.SW_VERSION))
+    print("Versión modelo predicciones: {}".format(config.MODEL_VERSION))
+
+    yara = compilar_yara()
+    print("Reglas YARA cargadas: {}".format(yara))
+
+    mongo_db = comprobar_db()
+    if not mongo_db:
+        print("BASE DE DATOS NO DISPONIBLE!!!")
 
 def num_procs():
     return cpu_count()//2
@@ -53,15 +63,16 @@ def conectar_db():
     if config.USE_DB_AUTH:
         return pymongo.MongoClient(config.MONGO_SERVER, 27017, serverSelectionTimeoutMS=10,
                                       username=config.MONGO_USERNAME, password=config.MONGO_PASSWORD,
-                                      authSource="admin")
+                                      authSource="admin", maxPoolSize=300000)
     else:
-        return pymongo.MongoClient(config.MONGO_SERVER, 27017, serverSelectionTimeoutMS=10)
+        return pymongo.MongoClient(config.MONGO_SERVER, 27017, serverSelectionTimeoutMS=10, maxPoolSize=300000)
 
 
 def comprobar_db():
     try:
         cliente = conectar_db()
         cliente.server_info()
+        cliente.close()
         return True
     except pymongo.errors.ServerSelectionTimeoutError as err:
        return False
@@ -71,6 +82,7 @@ def db_vacia():
     cliente = conectar_db()
     db = cliente[config.MONGO_DB]
     coleccion = db[config.MONGO_COLLECTION]
+    cliente.close()
     if coleccion.count() == 0:
         return True
     else:

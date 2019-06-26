@@ -5,7 +5,7 @@ from hyperopt import hp, fmin, tpe, STATUS_OK, Trials
 from sklearn.model_selection import train_test_split
 
 
-dataset = pd.read_csv("dataset.csv")
+dataset = pd.read_csv("pelyzer/recursos/dataset.csv")
 X = dataset.drop(['sha256','malware'], axis=1).values
 y = dataset['malware'].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
